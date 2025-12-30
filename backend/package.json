@@ -4,7 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+     "start": "pm2 start index.js --attach --name nikka-waitlist",
+     "stop": "pm2 stop nikka-waitlist",
+     "restart": "pm2 stop nikka-waitlist && pm2 start index.js --attach --name nikka-waitlist"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +17,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "mongoose": "^9.1.0",
-    "nodemailer": "^7.0.12"
+    "nodemailer": "^7.0.12",
+    "pm2": "^6.0.14"
   }
 }

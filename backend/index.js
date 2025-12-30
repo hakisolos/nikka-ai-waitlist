@@ -1,8 +1,8 @@
 import express from 'express'
 import { config } from "dotenv";
-import { ConDb } from './src/db';
-import { isValidEmail, sendWaitlistMail } from './src/utils';
-import { Waitlist } from './src/models/waitlist';
+import { ConDb } from './src/db.js';
+import { isValidEmail, sendWaitlistMail } from './src/utils.js';
+import { Waitlist } from './src/models/waitlist.js';
 config()
 
 const app = new express()
