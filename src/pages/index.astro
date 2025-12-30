@@ -1,10 +1,4 @@
----
-const scrollToAbout = () => {
-  const aboutSection = document.getElementById("about");
-  if (aboutSection) aboutSection.scrollIntoView({ behavior: "smooth" });
-};
----
-
+<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
@@ -78,9 +72,14 @@ const scrollToAbout = () => {
     .form-popup input::placeholder { color:#64748b;}
     .form-popup button[type="submit"] { padding:0.875rem 1.5rem; border-radius:0.5rem; background:#3b82f6; color:white; font-weight:600; font-size:1rem; transition:background 0.2s; margin-top:0.5rem;}
     .form-popup button[type="submit"]:hover { background:#2563eb;}
-    .success-box { background:rgba(59,130,246,0.1); border:1px solid #3b82f6; padding:1.25rem; border-radius:0.75rem; color:#3b82f6; font-weight:600; margin-top:1rem; line-height:1.5;}
+    .success-box { background:rgba(34,197,94,0.1); border:1px solid #22c55e; padding:1.25rem; border-radius:0.75rem; color:#22c55e; font-weight:600; margin-top:1rem; line-height:1.6; font-size:0.95rem;}
+    .success-box .check-email { color:#94a3b8; font-weight:400; margin-top:0.5rem; font-size:0.875rem;}
+    .error-box { background:rgba(239,68,68,0.1); border:1px solid #ef4444; padding:1.25rem; border-radius:0.75rem; color:#ef4444; font-weight:600; margin-top:1rem; line-height:1.5; font-size:0.95rem;}
     .close-btn { margin-top:1.25rem; background:#1e293b; color:#94a3b8; padding:0.625rem 1.25rem; border-radius:0.5rem; font-weight:600; transition:all 0.2s; width:100%;}
     .close-btn:hover { background:#334155; color:#f1f5f9;}
+    .loading { opacity:0.6; pointer-events:none; position:relative;}
+    .loading::after { content:''; position:absolute; top:50%; left:50%; width:20px; height:20px; margin:-10px 0 0 -10px; border:2px solid #3b82f6; border-top-color:transparent; border-radius:50%; animation:spin 0.6s linear infinite;}
+    @keyframes spin { to { transform:rotate(360deg);}}
   </style>
 </head>
 
@@ -154,62 +153,109 @@ const scrollToAbout = () => {
     <div class="form-popup">
       <h2>Join the Waitlist</h2>
       <p class="subtitle">Get early access to NIKKA AI</p>
-      <form id="waitlistForm" onsubmit="submitWaitlist(event)">
+      <form id="waitlistForm">
         <input type="text" name="name" placeholder="Your Name" required />
         <input type="email" name="email" placeholder="Your Email" required />
-        <button type="submit">Join Now</button>
+        <button type="submit" id="submitBtn">Join Now</button>
       </form>
       <div id="successBox" class="success-box" style="display:none;">
-        Bla bla bla... if anything happens you'll be the first to know!
+        <div>🎉 You've successfully joined the waitlist!</div>
+        <div class="check-email">Check your email for confirmation.</div>
       </div>
-      <button class="close-btn" onclick="document.getElementById('formOverlay').style.display='none';document.getElementById('waitlistForm').style.display='flex';document.getElementById('successBox').style.display='none';document.getElementById('waitlistForm').reset();">Close</button>
+      <div id="errorBox" class="error-box" style="display:none;"></div>
+      <button class="close-btn" onclick="closeModal()">Close</button>
     </div>
   </div>
 
   <script>
-    // Form submission handling with placeholder API
+    // API Configuration - Update this with your production URL
+    const API_URL = 'https://nikka-ai-waitlist.onrender.com/api/join'; // Change to your production URL
+
+    // Attach event listener when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('waitlistForm').addEventListener('submit', submitWaitlist);
+    });
+
+    // Form submission handling
     async function submitWaitlist(event) {
       event.preventDefault();
+      
       const form = event.target;
-      const name = form.name.value;
-      const email = form.email.value;
+      const submitBtn = document.getElementById('submitBtn');
+      const successBox = document.getElementById('successBox');
+      const errorBox = document.getElementById('errorBox');
+      const name = form.name.value.trim();
+      const email = form.email.value.trim();
+
+      // Reset messages
+      successBox.style.display = 'none';
+      errorBox.style.display = 'none';
+
+      // Show loading state
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Joining...';
 
       try {
-        // Placeholder API call - replace URL with your actual endpoint
-        const response = await fetch('https://api.example.com/waitlist', {
+        const response = await fetch(API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            name: name,
-            email: email,
-            timestamp: new Date().toISOString()
-          })
+          body: JSON.stringify({ name, email })
         });
 
-        // Show success message
-        form.style.display = 'none';
-        document.getElementById('successBox').style.display = 'block';
-        
-      } catch(err) {
+        const data = await response.json();
+
+        if (response.ok) {
+          // Success - User added to waitlist
+          form.style.display = 'none';
+          successBox.style.display = 'block';
+        } else if (response.status === 409) {
+          // User already exists
+          errorBox.textContent = '✉️ You\'re already on the waitlist! Check your email.';
+          errorBox.style.display = 'block';
+        } else if (response.status === 400) {
+          // Bad request or invalid email
+          errorBox.textContent = data.error || 'Please provide a valid name and email.';
+          errorBox.style.display = 'block';
+        } else {
+          // Other errors
+          errorBox.textContent = 'Something went wrong. Please try again later.';
+          errorBox.style.display = 'block';
+        }
+      } catch (err) {
         console.error('Error:', err);
-        // Even on error, show success (for demo purposes)
-        form.style.display = 'none';
-        document.getElementById('successBox').style.display = 'block';
+        errorBox.textContent = 'Unable to connect. Please check your connection and try again.';
+        errorBox.style.display = 'block';
+      } finally {
+        // Reset button state
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Join Now';
       }
+    }
+
+    // Close modal and reset form
+    function closeModal() {
+      const overlay = document.getElementById('formOverlay');
+      const form = document.getElementById('waitlistForm');
+      const successBox = document.getElementById('successBox');
+      const errorBox = document.getElementById('errorBox');
+      
+      overlay.style.display = 'none';
+      form.style.display = 'flex';
+      successBox.style.display = 'none';
+      errorBox.style.display = 'none';
+      form.reset();
     }
 
     // Close overlay on background click
     document.getElementById('formOverlay').addEventListener('click', function(e) {
       if (e.target === this) {
-        this.style.display = 'none';
-        document.getElementById('waitlistForm').style.display = 'flex';
-        document.getElementById('successBox').style.display = 'none';
-        document.getElementById('waitlistForm').reset();
+        closeModal();
       }
     });
   </script>
-
 </body>
 </html>

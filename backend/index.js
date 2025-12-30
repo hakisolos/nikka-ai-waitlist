@@ -3,12 +3,14 @@ import { config } from "dotenv";
 import { ConDb } from './src/db.js';
 import { isValidEmail, sendWaitlistMail } from './src/utils.js';
 import { Waitlist } from './src/models/waitlist.js';
+import cors from 'cors';
 config()
 
 const app = new express()
 const PORT = process.env.PORT || 3000
 
 app.use(express.json())
+app.use(cors())
 
 app.get("/", (req, res) => {
     return res.json({message: "waitlist api running"})
