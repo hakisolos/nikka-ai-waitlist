@@ -38,6 +38,7 @@ app.post("/api/join", async(req, res) => {
                 email
             }
         )
+        
         await sendWaitlistMail(email, name)
         return res.status(200).json({message: "User added to waitlist"})
     }catch(e) {
