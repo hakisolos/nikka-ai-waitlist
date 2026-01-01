@@ -1,4 +1,4 @@
-POST https://nikka-ai-waitlist.onrender.com/api/join
+POST http://localhost:4000/api/join
 Content-Type: application/json
 
 {
