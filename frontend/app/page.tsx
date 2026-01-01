@@ -9,7 +9,7 @@ export default function WaitlistPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  const API_URL = 'https://nikka-ai-waitlist.onrender.com/api/join';
+  const API_URL = 'https://nikka-ai-waitlist-1.onrender.com/api/join';
 
   const handleSubmit = async () => {
     if (!formData.name.trim() || !formData.email.trim()) {
